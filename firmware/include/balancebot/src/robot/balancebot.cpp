@@ -6,6 +6,7 @@
 #include "balancebot/drivers/encoder_interface.hpp"
 #include "balancebot/drivers/motor_driver_interface.hpp"
 
+#include "balancebot/estimation/complementary_filter.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 #include "balancebot/control/balance_controller.hpp"
 
@@ -21,15 +22,13 @@ BalanceBot::BalanceBot(
     IImuDriver& imu_driver,
     IEncoderDriver& encoder_driver,
     IMotorDriver& motor_driver,
-    AttitudeEstimator& attitude_estimator,
-    MotionEstimator& motion_estimator,
+    ComplementaryFilter& attitude_estimator,
     BalanceController& balance_controller
 )
     : imu_driver_(imu_driver),
       encoder_driver_(encoder_driver),
       motor_driver_(motor_driver),
       attitude_estimator_(attitude_estimator),
-      motion_estimator_(motion_estimator),
       balance_controller_(balance_controller),
       state_{},
       drive_command_{},
@@ -122,7 +121,7 @@ void BalanceBot::update(std::uint32_t now_us) {
     read_sensors_();
 
     // --- Estimate state ---
-    estimate_state_();
+    estimate_state_(dt_s);
 
     // --- Check safety ---
     check_safety_();
@@ -140,18 +139,7 @@ void BalanceBot::update(std::uint32_t now_us) {
     }
 
     // --- Run control algorithm ---
-    
-    // Return motor commands to balance
-    motor_command_ = balance_controller_.update(attitude_state_, dt_s);
-
-    // Stop if controller refuses to generate a valid command
-    if (!motor_command_.valid) {
-        force_motor_stop_();
-        return;
-    }
-
-    // --- Write outputs ---
-    write_outputs_();
+    run_control_(dt_s);
 }
 
 
@@ -219,24 +207,34 @@ void BalanceBot::read_sensors_() {
 
 
 // Estimate state from raw sensor samples
-void BalanceBot::estimate_state_() {
+void BalanceBot::estimate_state_(float dt_s) {
     // Update attitude estimate from IMU sample
     attitude_state_ = attitude_estimator_.update(
         imu_sample_,
-        config::ControlConfig::control_dt_s
-    );
-
-    // Update motion estimate from encoder sample
-    motion_state_ = motion_estimator_.update(
-        encoder_sample_,
-        config::ControlConfig::control_dt_s
+        dt_s
     );
 
     // Update summary robot state
     state_.pitch_rad = attitude_state_.pitch_rad;
     state_.pitch_rate_rad_s = attitude_state_.pitch_rate_rad_s;
-    state_.forward_velocity_m_s = motion_state_.forward_velocity_m_s;
-    state_.turn_rate_rad_s = motion_state_.turn_rate_rad_s;
+    state_.forward_velocity_m_s = 0.0f;
+    state_.turn_rate_rad_s = 0.0f;
+}
+
+
+// Compute control commands
+void BalanceBot::run_control_(float dt_s) {
+    // Return motor commands to balance
+    motor_command_ = balance_controller_.update(attitude_state_, dt_s);
+
+    // Stop if controller refuses to generate a valid command
+    if (!motor_command_.valid) {
+        force_motor_stop_();
+        return;
+    }
+
+    // Write outputs
+    write_outputs_();
 }
 
 
