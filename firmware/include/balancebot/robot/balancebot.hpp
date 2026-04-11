@@ -4,35 +4,30 @@
 #include <cstdint>
 
 #include "balancebot/core/types.hpp"
+#include "balancebot/drivers/imu_interface.hpp"
+#include "balancebot/drivers/encoder_interface.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 
 namespace balancebot {
 
-// Interface for drivers
-class IImuDriver; 
+// Driver interfaces
+class IImuDriver;
 class IEncoderDriver;
-class IMotorDriver; 
+class IMotorDriver;
 
-// Estimators
-class AttitudeEstimator; 
-class MotionEstimator; 
-
-// Balance controller
+// Concrete estimator / controller currently in use
+class ComplementaryFilter;
 class BalanceController;
-
 
 // Top-level robot object
 class BalanceBot {
-
-// Public API
-public: 
+public:
     // Constructor
     BalanceBot(
         IImuDriver& imu_driver,
         IEncoderDriver& encoder_driver,
         IMotorDriver& motor_driver,
-        AttitudeEstimator& attitude_estimator,
-        MotionEstimator& motion_estimator,
+        ComplementaryFilter& attitude_estimator,
         BalanceController& balance_controller
     );
 
@@ -49,7 +44,7 @@ public:
     void disarm();
 
     // Apply a high-level drive command
-    void set_drive_command(const DriveCommand& command); 
+    void set_drive_command(const DriveCommand& command);
 
     // Force an immediate stop
     void stop();
@@ -60,21 +55,20 @@ public:
     // Reveal loop timing statistics
     const LoopStats& loop_stats() const;
 
-
-private: 
+private:
     // --- Private methods ---
 
     // Read raw sensor values
     void read_sensors_();
 
     // Estimate state from raw sensor samples
-    void estimate_state_();
+    void estimate_state_(float dt_s);
 
     // Check safety rules
     void check_safety_();
 
     // Compute control commands
-    void run_control_();
+    void run_control_(float dt_s);
 
     // Write outputs to motor driver
     void write_outputs_();
@@ -85,25 +79,31 @@ private:
     // Force motors to stop
     void force_motor_stop_();
 
-
     // --- References ---
 
-    // Reference to the drivers
+    // Drivers
     IImuDriver& imu_driver_;
     IEncoderDriver& encoder_driver_;
     IMotorDriver& motor_driver_;
 
-    // Reference to the estimators
-    AttitudeEstimator& attitude_estimator_;
-    MotionEstimator& motion_estimator_;
-
-    // Reference to the balance controller
+    // Estimator / controller
+    ComplementaryFilter& attitude_estimator_;
     BalanceController& balance_controller_;
 
+    // --- Raw / estimated working state ---
 
-    // --- Current State ---
+    // Latest raw IMU sample
+    ImuSample imu_sample_;
 
-    // Current robot state
+    // Latest raw encoder sample
+    EncoderSample encoder_sample_;
+
+    // Latest estimated attitude state
+    AttitudeState attitude_state_;
+
+    // --- Current robot state ---
+
+    // Current robot state summary
     RobotState state_;
 
     // Last drive command
@@ -116,12 +116,10 @@ private:
     LoopStats loop_stats_;
 
     // Last update time
-    std::uint32_t last_update_us_ = 0; 
+    std::uint32_t last_update_us_ = 0;
 
-    // First update? 
-    bool first_update_ = true; 
-
+    // First update?
+    bool first_update_ = true;
 };
 
-
-} // namespace balancebot
+}  // namespace balancebot
