@@ -4,8 +4,8 @@
 #include <cstdint>
 
 #include "balancebot/core/types.hpp"
-#include "balancebot/drivers/imu_interface.hpp"
-#include "balancebot/drivers/encoder_interface.hpp"
+#include "balancebot/drivers/interfaces/imu_interface.hpp"
+#include "balancebot/drivers/interfaces/encoder_interface.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 
 namespace balancebot {

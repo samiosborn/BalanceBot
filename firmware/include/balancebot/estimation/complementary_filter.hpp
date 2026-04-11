@@ -1,7 +1,7 @@
 // firmware/include/balancebot/estimation/complementary_filter.hpp
 #pragma once
 
-#include "balancebot/drivers/imu_interface.hpp"
+#include "balancebot/drivers/interfaces/imu_interface.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 
 namespace balancebot {

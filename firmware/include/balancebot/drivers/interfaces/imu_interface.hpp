@@ -1,4 +1,4 @@
-// firmware/include/balancebot/drivers/imu_interface.hpp
+// firmware/include/balancebot/drivers/interfaces/imu_interface.hpp
 #pragma once
 
 #include <cstdint>

@@ -2,9 +2,9 @@
 
 #include "balancebot/robot/balancebot.hpp"
 
-#include "balancebot/drivers/imu_interface.hpp"
-#include "balancebot/drivers/encoder_interface.hpp"
-#include "balancebot/drivers/motor_driver_interface.hpp"
+#include "balancebot/drivers/interfaces/imu_interface.hpp"
+#include "balancebot/drivers/interfaces/encoder_interface.hpp"
+#include "balancebot/drivers/interfaces/motor_driver_interface.hpp"
 
 #include "balancebot/estimation/complementary_filter.hpp"
 #include "balancebot/estimation/estimation_types.hpp"

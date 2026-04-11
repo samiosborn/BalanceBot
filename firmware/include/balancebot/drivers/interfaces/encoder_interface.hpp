@@ -1,4 +1,4 @@
-// firmware/include/balancebot/drivers/encoder_interface.hpp
+// firmware/include/balancebot/drivers/interfaces/encoder_interface.hpp
 #pragma once
 
 #include <cstdint>

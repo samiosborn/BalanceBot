@@ -1,4 +1,4 @@
-// firmware/include/balancebot/drivers/motor_driver_interface.hpp
+// firmware/include/balancebot/drivers/interfaces/motor_driver_interface.hpp
 #pragma once
 
 #include "balancebot/core/types.hpp"
