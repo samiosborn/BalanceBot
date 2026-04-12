@@ -1,28 +1,26 @@
 # BalanceBot
 
-BalanceBot is a two-wheel self-balancing robot. 
+BalanceBot is a two-wheel self-balancing robot built around an ESP32.
 
-BalanceBot will be able to:
+Planned capabilities:
 - balance upright
 - drive forwards and backwards
 - turn left and right
-- be controlled from a phone over Wi-Fi
+- accept phone control over Wi-Fi
 
 ## Hardware
 
-- ESP32
-- dual brushed gear motors with quadrature encoders
-- IMU for tilt and angular rotation
-- motor driver
-- 2S LiPo power system
-- 5V1A buck converter
+Components:
+- ELEGOO ESP32 development board
+- 2x JGA25-37 12V 200 RPM brushed DC gear motors with rear quadrature encoders
+- SparkFun Qwiic Motor Driver (SCMD)
+- ICM-20948 IMU
+- 2S LiPo power supply
+- 5V 1A buck converter
 
 ## Repository structure
 
-This repository will likely be organised around:
+This repository is currently organised around:
 
-- `docs/` for build logs, notes, and diagrams
-- `hardware/` for pinouts, wiring, and parts information
-- `firmware/` for embedded code
-- `tools/` for scripts used during development and tuning
-- `media/` for photos and videos of progress
+- `config/` for robot, sensor, and control configuration
+- `firmware/` for embedded C++ code, drivers, estimation, and control
