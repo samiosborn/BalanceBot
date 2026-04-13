@@ -1,0 +1,12 @@
+; platformio_override.ini.example
+; Copy this file to platformio_override.ini and edit values for your machine
+
+[env:esp32dev]
+; Preferred: stable serial path
+upload_port = /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+monitor_port = /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+monitor_speed = 115200
+
+; Fallback if needed:
+; upload_port = /dev/ttyUSB0
+; monitor_port = /dev/ttyUSB0
