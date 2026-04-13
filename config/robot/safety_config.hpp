@@ -7,7 +7,7 @@ namespace balancebot::config {
 
 struct SafetyConfig {
     // Maximum allowed pitch angle (rad)
-    static constexpr float max_safe_pitch_rad = 1;
+    static constexpr float max_safe_pitch_rad = 1.4;
 
     // Command timeout (ms)
     static constexpr std::uint32_t command_timeout_ms = 250;

@@ -4,36 +4,53 @@
 namespace balancebot::config {
 
 struct ControlConfig {
-    // Main control loop rate
-    static constexpr int control_loop_hz = 200;
+    // --- Loop timing ---
 
-    // Loop period (s)
-    static constexpr float control_dt_s = 1.0f / static_cast<float>(control_loop_hz);
+    // Fixed control timestep used by the current robot update path
+    // 0.005 s = 200 Hz
+    static constexpr float control_dt_s = 0.005f;
 
-    // Telemetry update rate
-    static constexpr int telemetry_hz = 25;
 
-    // Complementary filter alpha
+    // --- Complementary filter ---
+
+    // Gyro / accelerometer fusion coefficient
     static constexpr float complementary_alpha = 0.975f;
 
-    // Balance controller deadband 
-    static constexpr float balance_deadband = 0.05f;
 
-    // Balance controller angle offset
-    static constexpr float balance_angle_offset_rad = 0.0f;
+    // --- Balance PID ---
 
-    // PID gains
-    static constexpr float balance_kp = 1.0f;
-    static constexpr float balance_ki = 0.05f;
-    static constexpr float balance_kd = 0.01f;
+    // Proportional gain
+    static constexpr float balance_kp = 2.0f;
 
-    // Integral clamp
+    // Integral gain
+    static constexpr float balance_ki = 0.0f;
+
+    // Derivative gain
+    static constexpr float balance_kd = 0.04f;
+
+
+    // --- PID clamps ---
+
+    // Integral lower limit
     static constexpr float integral_min = -0.5f;
+
+    // Integral upper limit
     static constexpr float integral_max = 0.5f;
 
-    // Output clamp
+    // Output lower limit
     static constexpr float output_min = -1.0f;
+
+    // Output upper limit
     static constexpr float output_max = 1.0f;
+
+
+    // --- Balance controller ---
+
+    // Small output deadband around zero
+    static constexpr float balance_deadband = 0.02f;
+
+    // Fixed pitch offset
+    static constexpr float balance_angle_offset_rad = 0.0f;
 };
 
 }  // namespace balancebot::config

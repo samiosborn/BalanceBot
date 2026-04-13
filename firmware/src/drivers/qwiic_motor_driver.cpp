@@ -25,38 +25,43 @@ QwiicMotorDriver::QwiicMotorDriver()
 
 // Bring up the SCMD motor driver over I2C
 bool QwiicMotorDriver::begin() {
+    Serial.println("MOTOR: begin()");
     ready_ = false;
 
-    // Ensure the I2C bus is up before touching the motor driver
-    Wire.begin();
-
     // Configure the underlying SCMD driver for I2C operation
+    Serial.println("MOTOR: configure SCMD I2C settings");
     scmd_.settings.commInterface = I2C_MODE;
     scmd_.settings.I2CAddress = i2c_address_;
 
     // Initialise the underlying SCMD driver
+    Serial.println("MOTOR: scmd_.begin()");
     scmd_.begin();
 
     // Wait for firmware enumeration (ready state)
+    Serial.println("MOTOR: waiting for ready()");
     const std::uint32_t start_ms = millis();
     while (!scmd_.ready()) {
         delay(10);
 
         // Avoid waiting forever during bring-up
         if (millis() - start_ms > 2000U) {
+            Serial.println("MOTOR: ready() timeout");
             return false;
         }
     }
 
     // Enable motor outputs
+    Serial.println("MOTOR: enable()");
     scmd_.enable();
 
     // Mark driver ready before issuing startup stop command
     ready_ = true;
 
     // Stop motors on startup
+    Serial.println("MOTOR: stop()");
     stop();
 
+    Serial.println("MOTOR: ready");
     return true;
 }
 
