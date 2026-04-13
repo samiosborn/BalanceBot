@@ -42,3 +42,7 @@
 
 # Local tooling
 /.codex
+
+# Platformio
+.pio/
+platformio_override.ini
