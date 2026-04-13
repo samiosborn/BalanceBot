@@ -13,11 +13,10 @@
 #include "balancebot/control/pid_controller.hpp"
 #include "balancebot/control/balance_controller.hpp"
 
-#include "config/robot/board_config.hpp"
-
 namespace balancebot {
 
 // --- Subsystem objects ---
+
 ICM20948 imu_driver;
 QuadratureEncoder encoder_driver;
 QwiicMotorDriver motor_driver;
@@ -26,7 +25,6 @@ ComplementaryFilter attitude_estimator;
 
 PidController pid_controller;
 BalanceController balance_controller(pid_controller);
-
 
 // Top-level robot object
 BalanceBot robot(
@@ -41,8 +39,8 @@ BalanceBot robot(
 
 
 void setup() {
-    // Start serial
-    Serial.begin(balancebot::config::BoardConfig::serial_baud);
+    // Start serial for bring-up logs
+    Serial.begin(115200);
     delay(200);
 
     Serial.println();
@@ -61,8 +59,8 @@ void setup() {
 
 
 void loop() {
-    // Run one update step using current timestamp (in microseconds)
+    // Run one update step using the current timestamp (microseconds)
     balancebot::robot.update(static_cast<std::uint32_t>(micros()));
 
-    // Don't arm the robot here
+    // Leave the robot disarmed here for safety during bring-up
 }
