@@ -46,3 +46,6 @@
 # Platformio
 .pio/
 platformio_override.ini
+
+# VSCode
+.vscode/
