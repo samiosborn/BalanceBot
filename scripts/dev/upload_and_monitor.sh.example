@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Copy this file to upload_and_monitor.sh and edit for your machine
+
+REPO_DIR="<REPO_DIR>"
+PIO_BIN="<PLATFORMIO_BIN>"
+
+cd "$REPO_DIR"
+
+"$PIO_BIN" run -t upload
+"$PIO_BIN" device monitor
