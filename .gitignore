@@ -57,3 +57,6 @@ notebooks/*.fls
 notebooks/*.log
 notebooks/*.pdf
 notebooks/*.synctex.gz
+
+# Local helper scripts
+scripts/dev/upload_and_monitor.sh
