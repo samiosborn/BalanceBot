@@ -49,3 +49,11 @@ platformio_override.ini
 
 # VSCode
 .vscode/
+
+# LaTeX build artefacts
+notebooks/*.aux
+notebooks/*.fdb_latexmk
+notebooks/*.fls
+notebooks/*.log
+notebooks/*.pdf
+notebooks/*.synctex.gz
