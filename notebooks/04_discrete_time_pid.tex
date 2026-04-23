@@ -1,0 +1,438 @@
+% 04_discrete_time_pid.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{mathtools}
+
+\author{Sami Osborn}
+\title{Discrete-Time PID Balance Control for a Self-Balancing Robot}
+\date{April 2026}
+
+\geometry{margin=1in}
+\setlength{\parindent}{0pt}
+\setlist[itemize]{leftmargin=*}
+
+\begin{document}
+\maketitle
+
+\section{Purpose of this note}
+
+This note studies the inner balancing loop actually used in the robot. The goal is not to prove nonlinear global stability for the full electromechanical system. Rather, the aim is to explain clearly why the implemented controller can work near the upright configuration, and why practical effects such as sampling, deadband, saturation, and limited motor authority may still prevent good balancing behaviour.
+
+The controller considered here is built from the following ingredients:
+\begin{itemize}
+    \item an estimate of pitch angle from the IMU and complementary filter,
+    \item an estimate of pitch rate from the gyroscope,
+    \item a discrete-time PID update,
+    \item a motor duty command,
+    \item output deadband and saturation,
+    \item safety cutoffs that prevent operation outside a prescribed region.
+\end{itemize}
+
+The intention is to connect the mathematics to the actual code path, not to an idealised controller that has not been implemented.
+
+% ====
+\section{Local balance problem}
+% ====
+
+Let
+\[
+\theta(t)
+\]
+denote the body pitch angle, measured from the upright configuration, and let
+\[
+\dot{\theta}(t)
+\]
+denote the pitch rate.
+
+We take the upright reference to be
+\[
+\theta_{\mathrm{ref}} = 0.
+\]
+
+Near upright, the balancing problem is local. If the robot remains close to
+\[
+\theta = 0,
+\]
+small-angle reasoning is informative and simple feedback laws can stabilise the body. If the tilt becomes too large, this local description becomes less reliable and the motors may no longer be able to drive the wheels quickly enough to recover.
+
+The control input in the present implementation is a commanded motor duty,
+\[
+u_k \in [-1,1],
+\]
+applied symmetrically to the left and right wheels during pure balance control. One should think of \(u_k\) as a proxy for axle torque: increasing \(u_k\) tends to drive the wheels beneath the body and hence influences the pitch dynamics.
+
+A minimal local model for intuition is
+\[
+\ddot{\theta}(t) = a\,\theta(t) + b\,u(t),
+\qquad a>0,\quad b>0,
+\]
+where \(a\) reflects the open-loop gravitational instability and \(b\) reflects the control authority of the wheels. This is not the full robot model, but it is sufficient for understanding the role of feedback near upright.
+
+% ====
+\section{Error definition and sign convention}
+% ====
+
+In discrete time, indexed by \(k\), let
+\[
+\theta^{\mathrm{est}}_k
+\]
+be the estimated pitch angle and let
+\[
+\omega_k
+\]
+denote the estimated pitch rate.
+
+The balance error is defined as
+\[
+e_k = \theta_{\mathrm{ref}} - \theta^{\mathrm{est}}_k.
+\]
+Since
+\[
+\theta_{\mathrm{ref}} = 0,
+\]
+this becomes
+\[
+e_k = -\theta^{\mathrm{est}}_k.
+\]
+
+The sign convention used throughout is:
+\begin{itemize}
+    \item \( \theta > 0 \) means the robot is leaning forwards,
+    \item \( \dot{\theta} > 0 \) means the body is rotating forwards,
+    \item positive motor duty means wheel motion in the direction chosen by the software convention.
+\end{itemize}
+
+This section is more important than it may first appear. In practice, many failed balance attempts are caused not by subtle control issues, but by a sign inconsistency between:
+\begin{itemize}
+    \item IMU orientation,
+    \item pitch estimate,
+    \item motor direction,
+    \item encoder direction,
+    \item controller error definition.
+\end{itemize}
+
+A balancing controller with the wrong sign does not merely perform badly; it actively drives the robot away from equilibrium.
+
+% ====
+\section{Discrete-time PID law}
+% ====
+
+The implemented controller is a discrete-time PID law. Let \(\Delta t\) denote the loop timestep. Then:
+\begin{align*}
+e_k &= \theta_{\mathrm{ref}} - \theta^{\mathrm{est}}_k, \\[4pt]
+I_k &= \operatorname{clamp}\!\left(I_{k-1} + e_k \Delta t,\ I_{\min}, I_{\max}\right).
+\end{align*}
+
+A textbook discrete derivative would be
+\[
+D_k = \frac{e_k - e_{k-1}}{\Delta t}.
+\]
+However, in the present robot, the derivative contribution is taken more directly from the measured pitch rate. This is preferable because finite-difference differentiation of angle estimates tends to amplify noise. Since
+\[
+e_k = -\theta^{\mathrm{est}}_k,
+\]
+we have, approximately,
+\[
+\frac{de}{dt} \approx -\dot{\theta}.
+\]
+Thus the derivative action can be written in terms of pitch rate itself.
+
+The raw controller output is therefore taken as
+\[
+u_k^{\mathrm{raw}} = K_P e_k + K_I I_k - K_D \omega_k.
+\]
+
+The result is then clamped to the admissible output interval:
+\[
+u_k^{\mathrm{sat}} = \operatorname{sat}(u_k^{\mathrm{raw}}),
+\]
+where
+\[
+\operatorname{sat}(u) =
+\begin{cases}
+u_{\max}, & u > u_{\max},\\
+u, & u_{\min} \le u \le u_{\max},\\
+u_{\min}, & u < u_{\min}.
+\end{cases}
+\]
+
+Finally, a deadband is applied:
+\[
+u_k =
+\begin{cases}
+0, & |u_k^{\mathrm{sat}}| < d,\\
+u_k^{\mathrm{sat}}, & |u_k^{\mathrm{sat}}| \ge d,
+\end{cases}
+\]
+where \(d>0\) is the deadband threshold.
+
+Thus the implemented controller is:
+\[
+\boxed{
+\begin{aligned}
+e_k &= \theta_{\mathrm{ref}} - \theta^{\mathrm{est}}_k,\\
+I_k &= \operatorname{clamp}\!\left(I_{k-1} + e_k \Delta t,\ I_{\min}, I_{\max}\right),\\
+u_k^{\mathrm{raw}} &= K_P e_k + K_I I_k - K_D \omega_k,\\
+u_k^{\mathrm{sat}} &= \operatorname{sat}(u_k^{\mathrm{raw}}),\\
+u_k &= \operatorname{deadband}(u_k^{\mathrm{sat}}).
+\end{aligned}
+}
+\]
+
+% ====
+\section{Sampled implementation}
+% ====
+
+This is not a continuous-time controller living on a blackboard. It is a sampled controller running on an embedded microcontroller.
+
+Each cycle performs, in effect, the following sequence:
+\begin{enumerate}
+    \item read IMU data,
+    \item update the complementary filter,
+    \item estimate pitch angle and pitch rate,
+    \item update the PID state,
+    \item compute a motor command,
+    \item send the motor command to the driver.
+\end{enumerate}
+
+Thus the system evolves in discrete steps separated by approximately \(\Delta t\). In the simplest treatment, one assumes a fixed timestep. In reality, one usually has
+\[
+\Delta t_k \approx \Delta t
+\]
+with small loop-to-loop variation.
+
+The distinction matters for two reasons:
+\begin{itemize}
+    \item \textbf{Timing error:} if \(\Delta t\) is used incorrectly, the integral and derivative terms are both distorted.
+    \item \textbf{Sampling delay:} every sampled controller has delay. A correction is computed using data from the previous loop and reaches the motor only after finite computation and communication delay.
+\end{itemize}
+
+These effects reduce stability margin. A controller that appears reasonable in continuous time may oscillate or respond sluggishly once discretised and implemented on real hardware.
+
+% ====
+\section{Saturation and deadband}
+% ====
+
+Two non-idealities are particularly important in this project: saturation and deadband.
+
+\subsection*{Saturation}
+
+The motor command is limited:
+\[
+u_k \in [u_{\min},u_{\max}],
+\]
+typically with
+\[
+u_{\min} = -1,\qquad u_{\max}=1.
+\]
+
+Once the controller reaches these limits, increasing the error does not produce a proportionally larger control action. This is one reason why linear analysis must be interpreted with care: a locally stabilising linear controller may still fail in practice if the required corrective action lies beyond the actuator limits.
+
+In balancing terms, saturation means:
+\begin{itemize}
+    \item large tilt errors may not be recoverable,
+    \item aggressive disturbances may drive the robot out of the locally controllable region,
+    \item a controller may appear ``too weak'' not because its formula is wrong, but because the actuator is already saturated.
+\end{itemize}
+
+\subsection*{Deadband}
+
+In addition, small commanded outputs are suppressed:
+\[
+|u_k| < d \implies u_k = 0.
+\]
+
+This is often useful in practice. Small duty commands may fail to overcome static friction, gearbox friction, motor-driver nonlinearity, or PWM quantisation. A deadband prevents the controller from issuing ineffective micro-commands.
+
+However, deadband also creates a nonlinearity around the origin. Small corrections are discarded, which can make the robot appear sluggish or unable to remove small residual errors.
+
+\subsection*{Motor authority}
+
+The present hardware also has limited authority because the motors are rated above the battery voltage currently used in testing. This means that even when the software command is large, the physical response may still be weaker than one would expect from nominal motor specifications. In practice, this acts like an additional reduction in effective control gain.
+
+% ====
+\section{Stability intuition near upright}
+% ====
+
+We now explain, at an intuitive mathematical level, why the controller can stabilise the upright configuration.
+
+Without control, the local model
+\[
+\ddot{\theta} = a\theta
+\qquad (a>0)
+\]
+is unstable. A small positive tilt produces positive angular acceleration, so the body falls further away from upright.
+
+\subsection*{Proportional action}
+
+If one chooses
+\[
+u = -K_P \theta,
+\]
+then the local dynamics become
+\[
+\ddot{\theta} = (a - bK_P)\theta.
+\]
+If
+\[
+bK_P > a,
+\]
+the sign of the effective stiffness reverses, and the controller counteracts the gravitational instability. This is why proportional gain is indispensable: it supplies the basic restoring action.
+
+\subsection*{Derivative action}
+
+If one adds derivative feedback,
+\[
+u = -K_P \theta - K_D \dot{\theta},
+\]
+then the closed-loop system becomes
+\[
+\ddot{\theta} + bK_D \dot{\theta} + (bK_P-a)\theta = 0.
+\]
+
+The derivative term damps motion. In physical terms, it resists angular velocity. Without enough damping, a balancing robot often overshoots and oscillates. With too much derivative action, the response may become noisy or overly hesitant.
+
+\subsection*{Integral action}
+
+The integral term
+\[
+K_I \int e(t)\,dt
+\]
+is useful mainly for removing persistent offset caused by sensor bias, slight mounting misalignment, or other slowly varying effects. In an inner balancing loop, integral action is usually not the main stabilising mechanism. Indeed, too much integral action often makes initial tuning harder by introducing additional lag and overshoot.
+
+Thus, for first-pass balancing:
+\begin{itemize}
+    \item proportional action supplies restoring effort,
+    \item derivative action supplies damping,
+    \item integral action is secondary.
+\end{itemize}
+
+% ====
+\section{A simple local result}
+% ====
+
+The following proposition captures the basic local picture.
+
+\subsection*{Proposition}
+Consider the simplified pitch model
+\[
+\ddot{\theta} = a\theta + bu,
+\qquad a>0,\quad b>0,
+\]
+with PD feedback
+\[
+u = -K_P\theta - K_D\dot{\theta}.
+\]
+If
+\[
+K_D > 0
+\qquad\text{and}\qquad
+K_P > \frac{a}{b},
+\]
+then the closed-loop linear system is asymptotically stable.
+
+\subsection*{Proof}
+Substituting the feedback law into the plant gives
+\[
+\ddot{\theta} = a\theta + b(-K_P\theta - K_D\dot{\theta}),
+\]
+hence
+\[
+\ddot{\theta} + bK_D\dot{\theta} + (bK_P-a)\theta = 0.
+\]
+
+The characteristic polynomial is
+\[
+\lambda^2 + bK_D\lambda + (bK_P-a).
+\]
+
+For a second-order polynomial
+\[
+\lambda^2 + c_1\lambda + c_0,
+\]
+all roots have strictly negative real part if
+\[
+c_1 > 0
+\qquad\text{and}\qquad
+c_0 > 0.
+\]
+
+Here,
+\[
+c_1 = bK_D,\qquad c_0 = bK_P-a.
+\]
+Thus the conditions
+\[
+bK_D > 0
+\qquad\text{and}\qquad
+bK_P-a > 0
+\]
+are sufficient. Since \(b>0\), these are equivalent to
+\[
+K_D > 0
+\qquad\text{and}\qquad
+K_P > \frac{a}{b}.
+\]
+Hence the equilibrium is asymptotically stable. \(\square\)
+
+\subsection*{Remark}
+This proposition is intentionally modest. It applies only to a simplified local linear model and ignores sampling, deadband, saturation, estimator delay, and wheel dynamics. Nevertheless, it explains why a PD-like balance law can work near upright, and why too little proportional gain cannot stabilise the robot.
+
+% ====
+\section{Practical stability behaviour}
+% ====
+
+The proposition above is useful, but the real robot is less forgiving. In practice:
+\begin{itemize}
+    \item \textbf{too little control} gives slow divergence or a failure to catch the body before it falls away,
+    \item \textbf{too much proportional gain} gives oscillation or violent over-correction,
+    \item \textbf{too much derivative gain} gives noisy or over-damped behaviour,
+    \item \textbf{too much integral gain} can produce wind-up and delayed recovery,
+    \item \textbf{sampling delay} reduces stability margin,
+    \item \textbf{deadband} suppresses small corrections near upright,
+    \item \textbf{saturation} limits recovery from larger tilts,
+    \item \textbf{weak motor authority} shrinks the region from which recovery is possible.
+\end{itemize}
+
+Thus one should not think of balance as a binary property. There is usually a local region around upright in which the controller works well, surrounded by a larger region in which it may or may not recover, and beyond that a region in which failure is unavoidable.
+
+% ====
+\section{Connection to the implemented code}
+% ====
+
+The mathematical quantities in this note correspond directly to the present code structure:
+\begin{itemize}
+    \item \( \theta^{\mathrm{est}} \) and \( \omega \) come from the IMU and complementary filter,
+    \item the PID state and output are handled by the PID controller class,
+    \item deadband and angle offset are handled by the balance controller,
+    \item motor duty is passed to the motor driver,
+    \item output limits, deadband, and gains live in configuration,
+    \item safety cutoffs are enforced in the robot state machine.
+\end{itemize}
+
+This is important: the mathematics here is not detached from implementation. It is an organised description of the control loop that is actually running on the embedded system.
+
+% ====
+\section{Conclusion}
+% ====
+
+The inner balance controller is best understood as a local sampled feedback law acting on pitch and pitch rate. Near upright, proportional action provides restoring effort, derivative action provides damping, and integral action serves mainly to remove slow bias. In the real robot, however, sampling, deadband, saturation, limited voltage, and safety cutoffs all play a decisive role.
+
+Accordingly, successful balancing is not determined by PID gains alone. It depends on the entire loop:
+\[
+\text{sensor estimation}
+\;\longrightarrow\;
+\text{discrete controller}
+\;\longrightarrow\;
+\text{actuator limits}
+\;\longrightarrow\;
+\text{mechanical response}.
+\]
+
+This note therefore provides a local stability picture and an implementation-level interpretation of the controller, rather than a global theorem for the full nonlinear robot.
+
+\end{document}
