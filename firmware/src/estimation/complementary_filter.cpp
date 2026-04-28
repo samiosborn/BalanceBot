@@ -16,17 +16,12 @@ ComplementaryFilter::ComplementaryFilter()
 
 
 // Reset estimator state
-void ComplementaryFilter::reset(float pitch0_rad) {
+void ComplementaryFilter::reset() {
     // Reset estimated attitude
-    state_.pitch_rad = pitch0_rad;
-    state_.pitch_rate_rad_s = 0.0f;
-    state_.roll_rad = 0.0f;
-    state_.yaw_rad = 0.0f;
-    state_.timestamp_us = 0;
-    state_.valid = true;
+    state_ = AttitudeState{};
 
     // Initialise filter
-    initialised_ = true;
+    initialised_ = false;
 }
 
 

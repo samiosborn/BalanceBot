@@ -12,7 +12,7 @@ public:
     ComplementaryFilter();
 
     // Reset estimator state
-    void reset(float pitch0_rad = 0.0f);
+    void reset();
 
     // Update the attitude state from one IMU sample
     AttitudeState update(const ImuSample& imu, float dt_s);
