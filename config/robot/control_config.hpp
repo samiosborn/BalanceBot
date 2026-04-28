@@ -20,13 +20,13 @@ struct ControlConfig {
     // --- Balance PID ---
 
     // Proportional gain
-    static constexpr float balance_kp = 2.0f;
+    static constexpr float balance_kp = 9.0f;
 
     // Integral gain
     static constexpr float balance_ki = 0.0f;
 
     // Derivative gain
-    static constexpr float balance_kd = 0.04f;
+    static constexpr float balance_kd = -1000.0f;
 
 
     // --- PID clamps ---
@@ -47,7 +47,7 @@ struct ControlConfig {
     // --- Balance controller ---
 
     // Small output deadband around zero
-    static constexpr float balance_deadband = 0.02f;
+    static constexpr float balance_deadband = 0.01f;
 
     // Fixed pitch offset
     static constexpr float balance_angle_offset_rad = 0.0f;
