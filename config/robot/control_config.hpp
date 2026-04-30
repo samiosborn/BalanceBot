@@ -7,7 +7,6 @@ struct ControlConfig {
     // --- Loop timing ---
 
     // Fixed control timestep used by the current robot update path
-    // 0.005 s = 200 Hz
     static constexpr float control_dt_s = 0.005f;
 
 
@@ -19,14 +18,14 @@ struct ControlConfig {
 
     // --- Balance PID ---
 
-    // Proportional gain
+    // Proportional gain; positive, with error = reference - pitch
     static constexpr float balance_kp = 9.0f;
 
-    // Integral gain
+    // Integral gain; positive, with error = reference - pitch
     static constexpr float balance_ki = 0.0f;
 
-    // Derivative gain
-    static constexpr float balance_kd = -1000.0f;
+    // Derivative gain; positive, applied to de/dt = -pitch_rate for a fixed reference
+    static constexpr float balance_kd = 1000.0f;
 
 
     // --- PID clamps ---
@@ -49,7 +48,7 @@ struct ControlConfig {
     // Small output deadband around zero
     static constexpr float balance_deadband = 0.01f;
 
-    // Fixed pitch offset
+    // Fixed pitch reference offset. A pitch equal to this value has zero error.
     static constexpr float balance_angle_offset_rad = 0.0f;
 };
 

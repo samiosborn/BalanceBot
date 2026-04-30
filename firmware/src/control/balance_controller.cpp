@@ -50,14 +50,20 @@ MotorCommand BalanceController::update(const AttitudeState& attitude, float dt_s
         return command;
     }
 
-    // Apply pitch angle offset
+    // Shift the measured pitch so that zero corresponds to the balance reference
     const float corrected_pitch_rad = apply_angle_offset_(attitude.pitch_rad);
     debug_state_.corrected_pitch_rad = corrected_pitch_rad;
 
-    // Run PID on (corrected) pitch and pitch rate 
+    // Error is reference minus measured pitch
+    const float pitch_error_rad = -corrected_pitch_rad;
+
+    // Since the reference is constant, the error derivative is minus pitch rate
+    const float pitch_error_rate_rad_s = -attitude.pitch_rate_rad_s;
+
+    // Compute the raw duty command from the PID controller
     const float duty_before_deadband = pid_controller_.update(
-        corrected_pitch_rad,
-        attitude.pitch_rate_rad_s,
+        pitch_error_rad,
+        pitch_error_rate_rad_s,
         dt_s
     );
 
@@ -89,7 +95,7 @@ const BalanceDebugState& BalanceController::debug_state() const {
 }
 
 
-// Apply configured pitch angle offset (helper)
+// Apply configured pitch angle offset (helper). Zero means the pitch reference is met.
 float BalanceController::apply_angle_offset_(float pitch_rad) const {
     return pitch_rad - angle_offset_rad_;
 }

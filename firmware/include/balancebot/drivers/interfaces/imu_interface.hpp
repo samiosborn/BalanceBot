@@ -6,6 +6,8 @@
 namespace balancebot {
 
 // IMU Sample
+// Robot frame convention: +forward, +left, +up
+// Positive pitch/rate means leaning/rotating forwards
 struct ImuSample {
     // Linear acceleration in m/s^2
     float accel_forward_m_s2 = 0.0f;
