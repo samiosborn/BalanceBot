@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "balancebot/control/control_debug.hpp"
 #include "balancebot/core/types.hpp"
 #include "balancebot/drivers/interfaces/imu_interface.hpp"
 #include "balancebot/drivers/interfaces/encoder_interface.hpp"
@@ -54,6 +55,9 @@ public:
 
     // Reveal loop timing statistics
     const LoopStats& loop_stats() const;
+
+    // Reveal latest temporary balance PID debug telemetry
+    const BalanceDebugState& balance_debug_state() const;
 
 private:
     // --- Private methods ---

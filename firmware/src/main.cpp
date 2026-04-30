@@ -136,6 +136,19 @@ void loop() {
         finished = true;
     }
 
+    // Temporary balance PID audit telemetry, throttled for serial bandwidth
+    static std::uint32_t last_pid_debug_print_ms = 0;
+    static constexpr std::uint32_t pid_debug_print_period_ms = 50U;
+    const balancebot::BalanceDebugState& balance_debug =
+        balancebot::robot.balance_debug_state();
+    if (state.armed &&
+        state.balance_enabled &&
+        balance_debug.command_valid &&
+        (now_ms - last_pid_debug_print_ms >= pid_debug_print_period_ms)) {
+        last_pid_debug_print_ms = now_ms;
+        balancebot::print_balance_pid_debug_line(balance_debug);
+    }
+
     // Periodic telemetry
     static std::uint32_t last_print_ms = 0;
     if (now_ms - last_print_ms >= 200U) {

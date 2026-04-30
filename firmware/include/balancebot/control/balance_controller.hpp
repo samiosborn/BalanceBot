@@ -1,6 +1,7 @@
 // firmware/include/balancebot/control/balance_controller.hpp
 #pragma once
 
+#include "balancebot/control/control_debug.hpp"
 #include "balancebot/core/types.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 
@@ -20,6 +21,9 @@ public:
     // Compute one balancing motor command
     MotorCommand update(const AttitudeState& attitude, float dt_s);
 
+    // Reveal latest temporary debug telemetry
+    const BalanceDebugState& debug_state() const;
+
 private:
     // Apply the config pitch angle offset
     float apply_angle_offset_(float pitch_rad) const;
@@ -35,6 +39,9 @@ private:
 
     // Configured balance angle offset
     const float angle_offset_rad_;
+
+    // Temporary debug telemetry
+    BalanceDebugState debug_state_;
 };
 
 }  // namespace balancebot

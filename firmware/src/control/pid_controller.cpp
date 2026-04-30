@@ -23,13 +23,19 @@ PidController::PidController()
 
       // Initialise output limits
       output_min_(config::ControlConfig::output_min),
-      output_max_(config::ControlConfig::output_max) {}
+      output_max_(config::ControlConfig::output_max),
+
+      // Initialise temporary debug telemetry
+      debug_state_{} {}
 
 
 // Reset controller state
 void PidController::reset() {
     // Clear accumulated integral term
     integral_ = 0.0f;
+
+    // Clear temporary debug telemetry
+    debug_state_ = PidDebugState{};
 }
 
 
@@ -50,12 +56,29 @@ float PidController::update(float error, float error_rate, float dt_s) {
     const float d = -kd_ * error_rate;
 
     // Combine terms
-    float output = p + i + d;
+    const float raw_output = p + i + d;
 
     // Clamp final output
-    output = clamp_(output, output_min_, output_max_);
+    const float clamped_output = clamp_(raw_output, output_min_, output_max_);
 
-    return output;
+    // Store temporary debug telemetry for the exact values computed above
+    debug_state_.dt_s = dt_s;
+    debug_state_.error = error;
+    debug_state_.error_rate = error_rate;
+    debug_state_.integral_state = integral_;
+    debug_state_.proportional_term = p;
+    debug_state_.integral_term = i;
+    debug_state_.derivative_term = d;
+    debug_state_.raw_output = raw_output;
+    debug_state_.clamped_output = clamped_output;
+
+    return clamped_output;
+}
+
+
+// Reveal latest temporary debug telemetry
+const PidDebugState& PidController::debug_state() const {
+    return debug_state_;
 }
 
 

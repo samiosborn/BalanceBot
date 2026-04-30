@@ -1,6 +1,8 @@
 // firmware/include/balancebot/control/pid_controller.hpp
 #pragma once
 
+#include "balancebot/control/control_debug.hpp"
+
 namespace balancebot {
 
 class PidController {
@@ -13,6 +15,9 @@ public:
 
     // Update the PID output
     float update(float error, float error_rate, float dt_s);
+
+    // Reveal latest temporary debug telemetry
+    const PidDebugState& debug_state() const;
 
 private:
     // Clamp a value to [min_value, max_value]
@@ -33,6 +38,9 @@ private:
     // --- Output limits ---
     float output_min_;
     float output_max_;
+
+    // --- Temporary debug telemetry ---
+    PidDebugState debug_state_;
 };
 
 }  // namespace balancebot

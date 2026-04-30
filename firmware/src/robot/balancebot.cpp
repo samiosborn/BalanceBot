@@ -196,6 +196,12 @@ const LoopStats& BalanceBot::loop_stats() const {
 }
 
 
+// Reveal latest temporary balance PID debug telemetry
+const BalanceDebugState& BalanceBot::balance_debug_state() const {
+    return balance_controller_.debug_state();
+}
+
+
 // Read raw sensor values
 void BalanceBot::read_sensors_() {
     // Read IMU sample
