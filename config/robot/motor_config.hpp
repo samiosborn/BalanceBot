@@ -20,8 +20,8 @@ struct MotorConfig {
     static constexpr std::uint8_t max_hardware_level = 255;
 
     // Motor direction inversion flags
-    static constexpr bool invert_left_motor = false;
-    static constexpr bool invert_right_motor = false;
+    static constexpr bool invert_left_motor = true;
+    static constexpr bool invert_right_motor = true;
 
     // Deadband compensation
     static constexpr float command_deadband = 0.0f;

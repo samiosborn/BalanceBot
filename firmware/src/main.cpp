@@ -81,7 +81,7 @@ void loop() {
 
     // Timing and limits
     static const std::uint32_t arm_delay_ms = 3000U;
-    static const std::uint32_t armed_duration_ms = 10000U;
+    static const std::uint32_t armed_duration_ms = 30000U;
     static const float max_pitch_to_arm_rad = 0.20f;
     static const float emergency_pitch_limit_rad = 0.50f;
 

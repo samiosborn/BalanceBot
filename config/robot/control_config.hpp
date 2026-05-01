@@ -19,13 +19,13 @@ struct ControlConfig {
     // --- Balance PID ---
 
     // Proportional gain; positive, with error = reference - pitch
-    static constexpr float balance_kp = 9.0f;
+    static constexpr float balance_kp = 8.0f;
 
     // Integral gain; positive, with error = reference - pitch
     static constexpr float balance_ki = 0.0f;
 
     // Derivative gain; positive, applied to de/dt = -pitch_rate for a fixed reference
-    static constexpr float balance_kd = 1000.0f;
+    static constexpr float balance_kd = -0.2f;
 
 
     // --- PID clamps ---
