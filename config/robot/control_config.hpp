@@ -25,7 +25,7 @@ struct ControlConfig {
     static constexpr float balance_ki = 0.0f;
 
     // Derivative gain; positive, applied to de/dt = -pitch_rate for a fixed reference
-    static constexpr float balance_kd = -0.2f;
+    static constexpr float balance_kd = -0.15f;
 
 
     // --- PID clamps ---
