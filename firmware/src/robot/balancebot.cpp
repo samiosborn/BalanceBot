@@ -208,7 +208,9 @@ void BalanceBot::read_sensors_() {
     imu_driver_.read(imu_sample_);
 
     // Read encoder sample
-    encoder_driver_.read(encoder_sample_);
+    if (!encoder_driver_.read(encoder_sample_)) {
+        encoder_sample_ = EncoderSample{};
+    }
 }
 
 
@@ -223,7 +225,9 @@ void BalanceBot::estimate_state_(float dt_s) {
     // Update summary robot state
     state_.pitch_rad = attitude_state_.pitch_rad;
     state_.pitch_rate_rad_s = attitude_state_.pitch_rate_rad_s;
-    state_.forward_velocity_m_s = 0.0f;
+    state_.forward_velocity_m_s = encoder_sample_.valid
+        ? 0.5f * (encoder_sample_.left_wheel_m_s + encoder_sample_.right_wheel_m_s)
+        : 0.0f;
     state_.turn_rate_rad_s = 0.0f;
 }
 
@@ -231,7 +235,7 @@ void BalanceBot::estimate_state_(float dt_s) {
 // Compute control commands
 void BalanceBot::run_control_(float dt_s) {
     // Return motor commands to balance
-    motor_command_ = balance_controller_.update(attitude_state_, dt_s);
+    motor_command_ = balance_controller_.update(attitude_state_, encoder_sample_, dt_s);
 
     // Stop if controller refuses to generate a valid command
     if (!motor_command_.valid) {

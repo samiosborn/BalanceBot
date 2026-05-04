@@ -23,6 +23,11 @@ struct BalanceDebugState {
     float pitch_rad = 0.0f;
     float pitch_rate_rad_s = 0.0f;
     float corrected_pitch_rad = 0.0f;
+    float average_wheel_rad_s = 0.0f;
+    float average_forward_velocity_m_s = 0.0f;
+    float wheel_speed_damping_term = 0.0f;
+    float combined_raw_output = 0.0f;
+    float combined_clamped_output = 0.0f;
     float duty_before_deadband = 0.0f;
     float duty_after_deadband = 0.0f;
     float left_duty = 0.0f;

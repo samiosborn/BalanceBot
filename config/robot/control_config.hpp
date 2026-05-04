@@ -6,7 +6,7 @@ namespace balancebot::config {
 struct ControlConfig {
     // --- Loop timing ---
 
-    // Fixed control timestep used by the current robot update path
+    // Fixed control timestep
     static constexpr float control_dt_s = 0.005f;
 
 
@@ -18,14 +18,20 @@ struct ControlConfig {
 
     // --- Balance PID ---
 
-    // Proportional gain; positive, with error = reference - pitch
+    // Proportional gain
     static constexpr float balance_kp = 8.0f;
 
-    // Integral gain; positive, with error = reference - pitch
+    // Integral gain
     static constexpr float balance_ki = 0.0f;
 
-    // Derivative gain; positive, applied to de/dt = -pitch_rate for a fixed reference
+    // Derivative gain
     static constexpr float balance_kd = -0.15f;
+
+
+    // --- Balance damping ---
+
+    // Balance wheel-speed gain
+    static constexpr float balance_wheel_speed_k = 0.0f;
 
 
     // --- PID clamps ---
@@ -45,10 +51,10 @@ struct ControlConfig {
 
     // --- Balance controller ---
 
-    // Small output deadband around zero
-    static constexpr float balance_deadband = 0.01f;
+    // Small output deadband
+    static constexpr float balance_deadband = 0.005f;
 
-    // Fixed pitch reference offset. A pitch equal to this value has zero error.
+    // Fixed pitch reference offset
     static constexpr float balance_angle_offset_rad = 0.0f;
 };
 

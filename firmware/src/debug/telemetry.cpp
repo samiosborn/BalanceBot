@@ -67,6 +67,21 @@ void print_balance_pid_debug_line(const BalanceDebugState& state) {
     Serial.print(" clamp=");
     Serial.print(pid.clamped_output, 4);
 
+    Serial.print(" wheel_rad_s=");
+    Serial.print(state.average_wheel_rad_s, 4);
+
+    Serial.print(" fwd_m_s=");
+    Serial.print(state.average_forward_velocity_m_s, 4);
+
+    Serial.print(" damp=");
+    Serial.print(state.wheel_speed_damping_term, 4);
+
+    Serial.print(" comb_raw=");
+    Serial.print(state.combined_raw_output, 4);
+
+    Serial.print(" comb_clamp=");
+    Serial.print(state.combined_clamped_output, 4);
+
     Serial.print(" dead=");
     Serial.print(state.duty_after_deadband, 4);
 

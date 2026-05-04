@@ -3,6 +3,7 @@
 
 #include "balancebot/control/control_debug.hpp"
 #include "balancebot/core/types.hpp"
+#include "balancebot/drivers/interfaces/encoder_interface.hpp"
 #include "balancebot/estimation/estimation_types.hpp"
 
 namespace balancebot {
@@ -19,7 +20,7 @@ public:
     void reset();
 
     // Compute one balancing motor command
-    MotorCommand update(const AttitudeState& attitude, float dt_s);
+    MotorCommand update(const AttitudeState& attitude, const EncoderSample& encoder_sample, float dt_s);
 
     // Reveal latest temporary debug telemetry
     const BalanceDebugState& debug_state() const;
@@ -31,6 +32,9 @@ private:
     // Apply deadband to the output duty
     float apply_deadband_(float duty) const;
 
+    // Clamp the final balance output duty
+    float clamp_output_(float duty) const;
+
     // Reference to the underlying PID controller
     PidController& pid_controller_;
 
@@ -39,6 +43,13 @@ private:
 
     // Configured balance angle offset
     const float angle_offset_rad_;
+
+    // Configured wheel-speed damping gain
+    const float wheel_speed_damping_k_;
+
+    // Configured output limits
+    const float output_min_;
+    const float output_max_;
 
     // Temporary debug telemetry
     BalanceDebugState debug_state_;
