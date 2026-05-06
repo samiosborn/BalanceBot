@@ -19,7 +19,7 @@ struct ControlConfig {
     // --- Balance PID ---
 
     // Proportional gain
-    static constexpr float balance_kp = 8.0f;
+    static constexpr float balance_kp = 7.0f;
 
     // Integral gain
     static constexpr float balance_ki = 0.0f;
@@ -31,7 +31,7 @@ struct ControlConfig {
     // --- Balance damping ---
 
     // Balance wheel-speed gain
-    static constexpr float balance_wheel_speed_k = 0.0f;
+    static constexpr float balance_wheel_speed_k = 0.08f;
 
 
     // --- PID clamps ---
